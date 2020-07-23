@@ -4,36 +4,44 @@
 \usepackage{graphicx}
 \usetikzlibrary{shapes}
 
-\newdimen\hexdim % goes into the preamble
-\hexdim=1cm
-
-\ExplSyntaxOn
-\DeclareExpandableDocumentCommand{\getlengthratio}{mm}
- {
-  \fp_eval:n { floor ( \dim_to_fp:n { #1 } / \dim_to_fp:n { #2 } , 0 ) }
- }
-\ExplSyntaxOff
-
 \newcount\xhexes
-\xhexes=\getlengthratio{\textwidth}{\hexdim}
+% The hex size is determined by the number of hexes you want horizontally
+% Change the number below to modify the hexes in the x axis
+\xhexes=10
 
-\newdimen\imageheight % goes into the preamble
+% Use makeatletter so we can use strip@pt
+\makeatletter
+\newcommand*{\getlength}[1]{\strip@pt#1}
+\makeatother
 
+\newdimen\imagewidth
+\imagewidth=\textwidth
+
+\newdimen\imageheight
 \settoheight{\imageheight}{%
-  \includegraphics[width=\textwidth,keepaspectratio]{example-image}%
+  \includegraphics[width=\imagewidth,keepaspectratio]{example-image}%
 }
 
+\newdimen\hexdim
+\hexdim=\numexpr\getlength{\imagewidth}/(\xhexes) pt\relax
+
+\imageheight=258pt
 \newcount\yhexes
-\yhexes=\getlengthratio{\imageheight}{\hexdim}
+\yhexes=\numexpr\getlength{\imageheight} / \getlength{\hexdim}\relax
 
 \begin{document}
+
+  \the\imageheight
+  \the\hexdim
+  \the\xhexes
+
   \begin{tikzpicture} [hexa/.style= {shape=regular polygon,
                                      regular polygon sides=6,
                                      minimum size=\hexdim, draw,
                                      inner sep=0,anchor=south,
                                      opacity=.5}]
 
-      \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=\textwidth]{example-image}};
+      \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=\imagewidth]{example-image}};
       \foreach \j in {0,...,\xhexes}{% 
            \ifodd\j 
                \foreach \i in {0,...,\yhexes}{\node[hexa] (h\j;\i) at ({\j*\hexdim/2+\j*\hexdim/4+\hexdim/2},{(\i*\hexdim+\hexdim/2)*sin(60)}) {\j;\i};}        
@@ -42,7 +50,4 @@
           \fi}
   \end{tikzpicture}
 
-\the\hexdim
-\the\imageheight
-\the\yhexes
 \end{document}      
